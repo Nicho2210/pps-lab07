@@ -44,8 +44,8 @@ class LoggingRobot(val robot: Robot) extends Robot:
 
 class RobotWithBattery(val robot: Robot,
                        var batteryLevel: Int = 100,
-                       var turnCost: Int = 5,
-                       var actCost: Int = 10) extends  Robot:
+                       private var turnCost: Int = 5,
+                       private var actCost: Int = 10) extends  Robot:
   export robot.{position, direction}
   override def turn(dir: Direction): Unit =
     if batteryLevel > turnCost then
