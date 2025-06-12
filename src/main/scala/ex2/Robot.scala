@@ -42,9 +42,49 @@ class LoggingRobot(val robot: Robot) extends Robot:
     robot.act()
     println(robot.toString)
 
+class RobotWithBattery(val robot: Robot, private var _battery: Int = 100) extends  Robot:
+  export robot.{position, direction}
+  private var _batteryLevel = _battery
+  private var _batteryDecAmout = 15
+  override def turn(dir: Direction): Unit =
+    if _batteryLevel > _batteryDecAmout then
+      _batteryLevel -= _batteryDecAmout
+      robot.turn(dir)
+      println(this.toString)
+    else
+      println(s"Not enough battery ($_batteryLevel%) to perform the action")
+
+
+  override def act(): Unit =
+    if _batteryLevel > _batteryDecAmout then
+      _batteryLevel -= _batteryDecAmout
+      robot.act()
+      println(this.toString)
+    else
+      println(s"Not enough battery ($_batteryLevel%) to perform the action")
+
+  override def toString: String = s"robot at $position facing $direction ($_batteryLevel%)"
+
+
 @main def testRobot(): Unit =
   val robot = LoggingRobot(SimpleRobot((0, 0), Direction.North))
   robot.act() // robot at (0, 1) facing North
   robot.turn(robot.direction.turnRight) // robot at (0, 1) facing East
   robot.act() // robot at (1, 1) facing East
   robot.act() // robot at (2, 1) facing East
+
+  val robotWithBattery = RobotWithBattery(SimpleRobot((0, 0), Direction.North))
+  robotWithBattery.act()
+  robotWithBattery.act()
+  robotWithBattery.act()
+  robotWithBattery.act()
+  robotWithBattery.turn(robotWithBattery.direction.turnRight)
+  robotWithBattery.act()
+  robotWithBattery.act()
+  robotWithBattery.act()
+  robotWithBattery.act()
+  robotWithBattery.act()
+  robotWithBattery.act()
+  robotWithBattery.act()
+  robotWithBattery.act()
+
