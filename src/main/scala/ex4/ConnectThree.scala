@@ -27,9 +27,20 @@ object ConnectThree extends App:
 
   import Player.*
 
-  def find(board: Board, x: Int, y: Int): Option[Player] = ???
+  def find(board: Board, x: Int, y: Int): Option[Player] =
+    if board.map(d => (d.x, d.y)).contains((x, y)) then
+      Option(board.find(d => d.x == x && d.y == y).get.player)
+    else
+      Option.empty
 
-  def firstAvailableRow(board: Board, x: Int): Option[Int] = ???
+  def firstAvailableRow(board: Board, x: Int): Option[Int] =
+    if board.isEmpty then Option(0)
+    else {
+      val max = board.map(d => d.y).max + 1
+      if max > bound then
+        Option.empty
+      else Option(max)
+    }
 
   def placeAnyDisk(board: Board, player: Player): Seq[Board] = ???
 
