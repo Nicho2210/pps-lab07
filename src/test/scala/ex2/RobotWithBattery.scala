@@ -52,3 +52,9 @@ class RobotWithBatterySpec extends AnyFlatSpec with Matchers:
     1 to turnN foreach(_ => robot.turn(Direction.North))
 
     robot.batteryLevel should be (initBattery - turnN * turnC - actN * actC)
+
+  it should "launch illegal argument exception" in:
+    an[IllegalArgumentException] should be thrownBy new RobotWithBattery(SimpleRobot((0,0), Direction.North),
+      batteryLevel = 101)
+    an[IllegalArgumentException] should be thrownBy new RobotWithBattery(SimpleRobot((0, 0), Direction.North),
+      batteryLevel = -1)

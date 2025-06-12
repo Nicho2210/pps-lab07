@@ -48,6 +48,7 @@ class LoggingRobot(val robot: Robot) extends Robot:
 
 class RobotWithBattery(val robot: Robot, var batteryLevel: Int = 100, private var turnCost: Int = 5, private var actCost: Int = 10) extends  Robot:
   export robot.{position, direction}
+  if batteryLevel < 0  || batteryLevel > 100 then throw IllegalArgumentException("Battery level must be between 0 and 100")
   private def doIt(a: => Unit, cost: Int): Unit =
     if batteryLevel >= cost then {a; batteryLevel -= cost; println(this.toString)}
     else println(s"Not enough battery to perform the action. Battery level = $batteryLevel. Battery required = $cost")
@@ -71,7 +72,7 @@ class RobotCanFail(val robot: Robot, val failureChance: Int = 50) extends Robot:
   robot.act() // robot at (1, 1) facing East
   robot.act() // robot at (2, 1) facing East
 
-  val robotWithBattery = RobotWithBattery(SimpleRobot((0, 0), Direction.North))
+  val robotWithBattery = RobotWithBattery(SimpleRobot((0, 0), Direction.North), batteryLevel = 101)
   robotWithBattery.act()
   robotWithBattery.act()
   robotWithBattery.act()
