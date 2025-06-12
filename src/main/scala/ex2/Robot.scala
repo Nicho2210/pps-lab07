@@ -66,16 +66,9 @@ class RobotCanFail(val robot: Robot, val failureChance: Int = 50) extends Robot:
   override def turn(dir: Direction): Unit = tryIt(robot.turn(dir))
   override def act(): Unit = tryIt(robot.act())
 
-class RobotRepeated(val robot: Robot, rep: Int) extends Robot:
-  export robot.{position, direction, turn}
-
-  override def act(): Unit =
-    for
-      i <- 0 until rep
-    yield {
-      robot.act()
-      println(robot.toString)
-    }
+class RobotRepeated(val robot: Robot) extends Robot:
+  export robot.{position, direction, turn, act}
+  def act(rep: Int): Unit = 1 to rep foreach(_ => act())
 
 
 @main def testRobot(): Unit =
@@ -98,7 +91,7 @@ class RobotRepeated(val robot: Robot, rep: Int) extends Robot:
   robotWithBattery.act()
   robotWithBattery.act()
 
-  val robotCanFail = RobotCanFail(LoggingRobot(SimpleRobot((0, 0), Direction.North)), failureChance = 5)
+  val robotCanFail = RobotCanFail(LoggingRobot(SimpleRobot((0, 0), Direction.North)), failureChance = 50)
   robotCanFail.act()
   robotCanFail.act()
   robotCanFail.act()
@@ -111,8 +104,8 @@ class RobotRepeated(val robot: Robot, rep: Int) extends Robot:
   robotCanFail.act()
   robotCanFail.act()
 
-  val repeatedRobot = RobotRepeated(SimpleRobot((0, 0), Direction.North), 5)
-  repeatedRobot.act()
+  val repeatedRobot = RobotRepeated(LoggingRobot(SimpleRobot((0, 0), Direction.North)))
+  repeatedRobot.act(5)
   repeatedRobot.turn(repeatedRobot.direction.turnRight)
-  repeatedRobot.act()
+  repeatedRobot.act(10)
 
