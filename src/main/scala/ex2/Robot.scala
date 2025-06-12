@@ -37,31 +37,32 @@ class DumbRobot(val robot: Robot) extends Robot:
   override def toString: String = s"${robot.toString} (Dump)"
 
 class LoggingRobot(val robot: Robot) extends Robot:
-  export robot.{position, direction, turn}
+  export robot.{position, direction}
   override def act(): Unit =
     robot.act()
     println(robot.toString)
 
-class RobotWithBattery(val robot: Robot,
-                       var batteryLevel: Int = 100,
-                       private var turnCost: Int = 5,
-                       private var actCost: Int = 10) extends  Robot:
+  override def turn(dir: Direction): Unit =
+    robot.turn(dir)
+    println(robot.toString)
+
+class RobotWithBattery(val robot: Robot, var batteryLevel: Int = 100, private var turnCost: Int = 5, private var actCost: Int = 10) extends  Robot:
   export robot.{position, direction}
-
   private def doIt(a: => Unit, cost: Int): Unit =
-    if batteryLevel >= cost then
-      a
-      batteryLevel -= cost
-      println(this.toString)
-    else
-      println(s"Not enough battery to perform the action. Battery level = $batteryLevel. Battery required = $cost")
-
+    if batteryLevel >= cost then {a; batteryLevel -= cost; println(this.toString)}
+    else println(s"Not enough battery to perform the action. Battery level = $batteryLevel. Battery required = $cost")
   override def turn(dir: Direction): Unit = doIt(robot.turn(dir), turnCost)
-
   override def act(): Unit = doIt(robot.act(), actCost)
-
   override def toString: String = s"robot at $position facing $direction ($batteryLevel%)"
 
+class RobotCanFail(val robot: Robot, val failureChance: Int = 50) extends Robot:
+  import scala.util.Random
+  export robot.{position, direction}
+  private def tryIt(a: => Unit): Unit =
+    if Random.nextInt(100) > failureChance then {a}
+    else println("Action failed")
+  override def turn(dir: Direction): Unit = tryIt(robot.turn(dir))
+  override def act(): Unit = tryIt(robot.act())
 
 @main def testRobot(): Unit =
   val robot = LoggingRobot(SimpleRobot((0, 0), Direction.North))
@@ -82,4 +83,17 @@ class RobotWithBattery(val robot: Robot,
   robotWithBattery.act()
   robotWithBattery.act()
   robotWithBattery.act()
+
+  val robotCanFail = RobotCanFail(LoggingRobot(SimpleRobot((0, 0), Direction.North)), failureChance = 5)
+  robotCanFail.act()
+  robotCanFail.act()
+  robotCanFail.act()
+  robotCanFail.act()
+  robotCanFail.turn(robotCanFail.direction.turnRight)
+  robotCanFail.act()
+  robotCanFail.act()
+  robotCanFail.act()
+  robotCanFail.act()
+  robotCanFail.act()
+  robotCanFail.act()
 
