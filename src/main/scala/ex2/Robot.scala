@@ -47,22 +47,18 @@ class RobotWithBattery(val robot: Robot,
                        private var turnCost: Int = 5,
                        private var actCost: Int = 10) extends  Robot:
   export robot.{position, direction}
-  override def turn(dir: Direction): Unit =
-    if batteryLevel > turnCost then
-      batteryLevel -= turnCost
-      robot.turn(dir)
+
+  private def doIt(a: => Unit, cost: Int): Unit =
+    if batteryLevel >= cost then
+      a
+      batteryLevel -= cost
       println(this.toString)
     else
-      println(s"Not enough battery ($batteryLevel%) to perform the action")
+      println(s"Not enough battery to perform the action. Battery level = $batteryLevel. Battery required = $cost")
 
+  override def turn(dir: Direction): Unit = doIt(robot.turn(dir), turnCost)
 
-  override def act(): Unit =
-    if batteryLevel > actCost then
-      batteryLevel -= actCost
-      robot.act()
-      println(this.toString)
-    else
-      println(s"Not enough battery ($batteryLevel%) to perform the action")
+  override def act(): Unit = doIt(robot.act(), actCost)
 
   override def toString: String = s"robot at $position facing $direction ($batteryLevel%)"
 
@@ -80,8 +76,6 @@ class RobotWithBattery(val robot: Robot,
   robotWithBattery.act()
   robotWithBattery.act()
   robotWithBattery.turn(robotWithBattery.direction.turnRight)
-  robotWithBattery.act()
-  robotWithBattery.act()
   robotWithBattery.act()
   robotWithBattery.act()
   robotWithBattery.act()
