@@ -59,11 +59,24 @@ class RobotWithBattery(val robot: Robot, var batteryLevel: Int = 100, private va
 class RobotCanFail(val robot: Robot, val failureChance: Int = 50) extends Robot:
   import scala.util.Random
   export robot.{position, direction}
+  if failureChance < 0 || failureChance > 100 then throw IllegalArgumentException("Failure chance must be between 0 and 100")
   private def tryIt(a: => Unit): Unit =
     if Random.nextInt(100) > failureChance then {a}
     else println("Action failed")
   override def turn(dir: Direction): Unit = tryIt(robot.turn(dir))
   override def act(): Unit = tryIt(robot.act())
+
+class RobotRepeated(val robot: Robot, rep: Int) extends Robot:
+  export robot.{position, direction, turn}
+
+  override def act(): Unit =
+    for
+      i <- 0 until rep
+    yield {
+      robot.act()
+      println(robot.toString)
+    }
+
 
 @main def testRobot(): Unit =
   val robot = LoggingRobot(SimpleRobot((0, 0), Direction.North))
@@ -72,7 +85,7 @@ class RobotCanFail(val robot: Robot, val failureChance: Int = 50) extends Robot:
   robot.act() // robot at (1, 1) facing East
   robot.act() // robot at (2, 1) facing East
 
-  val robotWithBattery = RobotWithBattery(SimpleRobot((0, 0), Direction.North), batteryLevel = 101)
+  val robotWithBattery = RobotWithBattery(SimpleRobot((0, 0), Direction.North), batteryLevel = 100)
   robotWithBattery.act()
   robotWithBattery.act()
   robotWithBattery.act()
@@ -97,4 +110,9 @@ class RobotCanFail(val robot: Robot, val failureChance: Int = 50) extends Robot:
   robotCanFail.act()
   robotCanFail.act()
   robotCanFail.act()
+
+  val repeatedRobot = RobotRepeated(SimpleRobot((0, 0), Direction.North), 5)
+  repeatedRobot.act()
+  repeatedRobot.turn(repeatedRobot.direction.turnRight)
+  repeatedRobot.act()
 
