@@ -30,8 +30,9 @@ object ConnectThree extends App:
   def find(board: Board, x: Int, y: Int): Option[Player] =
     if board.map(d => (d.x, d.y)).contains((x, y)) then
       Option(board.find(d => d.x == x && d.y == y).get.player)
-    else
+    else {
       Option.empty
+    }
 
   def firstAvailableRow(board: Board, x: Int): Option[Int] =
     if board.isEmpty then Option(0)
@@ -42,7 +43,15 @@ object ConnectThree extends App:
       else Option(max)
     }
 
-  def placeAnyDisk(board: Board, player: Player): Seq[Board] = ???
+  def placeAnyDisk(board: Board, player: Player): Seq[Board] =
+    for
+      x <- 0 to 3
+      y <- 0 to 3
+      if !board.map(d => (d.x, d.y)).contains((x, y)) && (y == 0 || board.map(d => (d.x, d.y)).contains((x, y - 1)))
+    yield board.toSeq :+ Disk(x, y, player)
+
+
+
 
   def computeAnyGame(player: Player, moves: Int): LazyList[Game] = ???
 
@@ -71,12 +80,13 @@ object ConnectThree extends App:
   println(firstAvailableRow(List(Disk(0, 0, X), Disk(0, 1, X), Disk(0, 2, X)), 0)) // Some(3)
   println(firstAvailableRow(List(Disk(0, 0, X), Disk(0, 1, X), Disk(0, 2, X), Disk(0, 3, X)), 0)) // None
   // Exercise 2: implement placeAnyDisk such that..
+  println("EX 3: ")
   printBoards(placeAnyDisk(List(), X))
   // .... .... .... ....
   // .... .... .... ....
   // .... .... .... ....
   // ...X ..X. .X.. X...
-  printBoards(placeAnyDisk(List(Disk(0, 0, O)), X))
+  printBoards(placeAnyDisk(List(Disk(3, 0, O)), X))
   // .... .... .... ....
   // .... .... .... ....
   // ...X .... .... ....
