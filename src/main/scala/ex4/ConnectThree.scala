@@ -2,6 +2,7 @@ package ex4
 
 object ConnectThree extends App:
   val bound = 3
+  val streakToWin = 3
   enum Player:
     case X, O
     def other: Player = this match
@@ -49,41 +50,70 @@ object ConnectThree extends App:
       yield
         game :+ new_board
 
-  def computeAnyGameThatStop(player: Player): LazyList[Game] = moves match
+  def someoneIsWinning(board: Board): Boolean = {
+    val res: Seq[Boolean] = for {
+      p <- LazyList(X, O)
+      x <- 0 to bound - streakToWin + 1
+      y <- 0 to bound
+    } yield checkHorizontal(board, p, x, y) || checkVertical(board, p, x, y) || checkOb(board, p, x, y)
+    res.exists(identity)
+  }
+
+  def checkHorizontal(board: Board, player: Player, x: Int, y: Int): Boolean = {
+    board.filter{d =>
+        (d.player == player) &&
+        (d.y == y) &&
+        (d.x >= x) &&
+        (d.x < x + streakToWin)
+      }.map(_ => 1)
+      .sum == streakToWin
+  }
+
+  def checkVertical(board: Board, player: Player, x: Int, y: Int): Boolean = {
+    board.filter{d =>
+        (d.player == player) &&
+          (d.x == x) &&
+          (d.y >= y) &&
+          (d.y < y + streakToWin)
+      }.map(_ => 1)
+      .sum == streakToWin
+  }
+
+  def checkOb(board: Board, player: Player, x: Int, y: Int): Boolean =
+    board.filter{d =>
+      (d.player == player) &&
+        ((d.x - x) == (d.y - y)) &&
+        ((d.x - x) >= 0) &&
+        ((d.x - x) < streakToWin)
+    }.map(d => 1).sum == streakToWin
+
+  def computeAnyGameThatStop(player: Player, moves: Int): LazyList[Game] = moves match
     case 0 => LazyList(newGame)
     case _ =>
       for
-        game <- computeAnyGame(player.other, moves - 1)
+        game <- computeAnyGameThatStop(player.other, moves - 1)
         new_board <- placeAnyDisk(game.last, player)
+        //if !someoneIsWinning(new_board)
       yield game :+ new_board
 
 
-  def printBoards(game: Seq[Board]): Unit =
+  def printBoards(game: Seq[Board]): Unit = {
     for
       y <- bound to 0 by -1
       board <- game.reverse
       x <- 0 to bound
     do
+      if (y == bound && x == 0 && board == game.last) then {
+        println("Board")
+      }
       print(find(board, x, y).map(_.toString).getOrElse("."))
       if x == bound then
         print(" ")
         if board == game.head then println()
+  }
 
-  // Exercise 1: implement find such that..
-  println("EX 1: ")
-  println(find(List(Disk(0, 0, X)), 0, 0)) // Some(X)
-  println(find(List(Disk(0, 0, X), Disk(0, 1, O), Disk(0, 2, X)), 0, 1)) // Some(O)
-  println(find(List(Disk(0, 0, X), Disk(0, 1, O), Disk(0, 2, X)), 1, 1)) // None
-
-  // Exercise 2: implement firstAvailableRow such that..
-  println("EX 2: ")
-  println(firstAvailableRow(List(), 0)) // Some(0)
-  println(firstAvailableRow(List(Disk(0, 0, X)), 0)) // Some(1)
-  println(firstAvailableRow(List(Disk(0, 0, X), Disk(0, 1, X)), 0)) // Some(2)
-  println(firstAvailableRow(List(Disk(0, 0, X), Disk(0, 1, X), Disk(0, 2, X)), 0)) // Some(3)
-  println(firstAvailableRow(List(Disk(0, 0, X), Disk(0, 1, X), Disk(0, 2, X), Disk(0, 3, X)), 0)) // None
   // Exercise 3: implement placeAnyDisk such that..
-  println("EX 3: ")
+  println("EX 3:")
   printBoards(placeAnyDisk(List(), X))
   // .... .... .... ....
   // .... .... .... ....
@@ -94,21 +124,30 @@ object ConnectThree extends App:
   // .... .... .... ....
   // ...X .... .... ....
   // ...O ..XO .X.O X..O
+  
   // Exercise 4 (ADVANCED!): implement computeAnyGame such that..
-  println("EX 4: ")
-  computeAnyGame(O, 4).foreach { g =>
+  println("EX 4:")
+  computeAnyGame(O, 5).foreach { g =>
     printBoards(g)
     println()
   }
-//  .... .... .... .... ...O
-//  .... .... .... ...X ...X
-//  .... .... ...O ...O ...O
-//  .... ...X ...X ...X ...X
-//
-//
-// .... .... .... .... O...
-// .... .... .... X... X...
-// .... .... O... O... O...
-// .... X... X... X... X...
+  //  .... .... .... .... ...O
+  //  .... .... .... ...X ...X
+  //  .... .... ...O ...O ...O
+  //  .... ...X ...X ...X ...X
+  //
+  //
+  // .... .... .... .... O...
+  // .... .... .... X... X...
+  // .... .... O... O... O...
+  // .... X... X... X... X...
 
 // Exercise 4 (VERY ADVANCED!) -- modify the above one so as to stop each game when someone won!!
+  println("EX 5: ")
+  computeAnyGameThatStop(O, 4).foreach { g =>
+    printBoards(g)
+    println()
+  }
+
+  println("TEST SOMEONE WINNING")
+  println(someoneIsWinning(List(Disk(1, 1, X), Disk(2, 2, X), Disk(3, 3, X))))
