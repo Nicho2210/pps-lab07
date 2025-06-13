@@ -140,4 +140,20 @@ class ConnectThreeSpec extends AnyFlatSpec with Matchers:
     someoneIsWinning(interruptedD1) should be(false)
     someoneIsWinning(twoDisksD2) should be(false)
 
+  "Method computeAnyGameUntilSomeoneWinOrUntilNMoves" should "work correctly" in:
+    for
+      n <- 4 to 6
+      game <- computeAnyGameUntilSomeoneWinOrUntilNMoves(X, n)
+    yield {
+      val size = game.last.size
+      if (someoneIsWinning(game.last))
+        size >= 5 && size <= n should be(true)
+      else
+        size should be(n)
+      for
+        b <- game.reverse.tail
+      yield
+        someoneIsWinning(b) should be (false)
+    }
+
 

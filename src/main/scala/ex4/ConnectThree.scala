@@ -110,11 +110,11 @@ object ConnectThree extends App:
       (x, y, i) => (x + i, y - i)
     )
 
-  def computeAnyGameThatStop(player: Player, moves: Int): LazyList[Game] = moves match
+  def computeAnyGameUntilSomeoneWinOrUntilNMoves(player: Player, moves: Int): LazyList[Game] = moves match
     case 0 => LazyList(newGame)
     case _ =>
       for
-        game <- computeAnyGameThatStop(player.other, moves - 1)
+        game <- computeAnyGameUntilSomeoneWinOrUntilNMoves(player.other, moves - 1)
         if game.lastOption.forall(b => !someoneIsWinning(b))
         new_board <- placeAnyDisk(game.last, player)
       yield game :+ new_board
@@ -135,7 +135,7 @@ object ConnectThree extends App:
         if board == game.head then println()
   }
 
-  // Exercise 3: implement placeAnyDisk such that..
+  // Exercise 3: implement placeAnyDisk such that...
   println("EX 3:")
   printBoards(placeAnyDisk(List(), X))
   // .... .... .... ....
@@ -148,7 +148,7 @@ object ConnectThree extends App:
   // ...X .... .... ....
   // ...O ..XO .X.O X..O
 
-  // Exercise 4 (ADVANCED!): implement computeAnyGame such that..
+  // Exercise 4 (ADVANCED!): implement computeAnyGame such that...
   println("EX 4:")
   computeAnyGame(O, 5).foreach { g =>
     if g.lastOption.forall(b => someoneIsWinning(b)) then
@@ -166,13 +166,10 @@ object ConnectThree extends App:
   // .... .... O... O... O...
   // .... X... X... X... X...
 
-// Exercise 4 (VERY ADVANCED!) -- modify the above one so as to stop each game when someone won!!
+// Exercise 4 (VERY ADVANCED!) -- modify the above one to stop each game when someone won!!
   println("EX 5: ")
-  computeAnyGameThatStop(O, 6).foreach { g =>
+  computeAnyGameUntilSomeoneWinOrUntilNMoves(O, 6).foreach { g =>
     if g.lastOption.forall(b => someoneIsWinning(b)) then
       printBoards(g)
       println()
   }
-
-  println("TEST SOMEONE WINNING")
-  println(someoneIsWinning(List(Disk(1, 1, X), Disk(2, 2, X), Disk(3, 3, X))))
