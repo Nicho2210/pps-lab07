@@ -39,7 +39,12 @@ object ConnectThree extends App:
     for
       x <- 0 to bound
       y <- firstAvailableRow(board, x)
-    yield board.toSeq :+ Disk(x, y, player)
+    yield board :+ Disk(x, y, player)
+
+  def placeDisk(board: Board, player: Player, x: Int): Board = firstAvailableRow(board, x) match {
+    case Some(y) => board :+ Disk(x, y, player)
+    case _ => board
+  }
 
   def computeAnyGame(player: Player, moves: Int): LazyList[Game] = moves match
     case 0 => LazyList(newGame)
@@ -103,7 +108,7 @@ object ConnectThree extends App:
       board <- game.reverse
       x <- 0 to bound
     do
-      if (y == bound && x == 0 && board == game.last) then {
+      if y == bound && x == 0 && board == game.last then {
         println("Board")
       }
       print(find(board, x, y).map(_.toString).getOrElse("."))
@@ -124,7 +129,7 @@ object ConnectThree extends App:
   // .... .... .... ....
   // ...X .... .... ....
   // ...O ..XO .X.O X..O
-  
+
   // Exercise 4 (ADVANCED!): implement computeAnyGame such that..
   println("EX 4:")
   computeAnyGame(O, 5).foreach { g =>
