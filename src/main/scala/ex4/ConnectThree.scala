@@ -126,9 +126,6 @@ object ConnectThree extends App:
       board <- game.reverse
       x <- 0 to bound
     do
-      if y == bound && x == 0 && board == game.last then {
-        println("Board")
-      }
       print(find(board, x, y).map(_.toString).getOrElse("."))
       if x == bound then
         print(" ")
@@ -168,8 +165,9 @@ object ConnectThree extends App:
 
 // Exercise 4 (VERY ADVANCED!) -- modify the above one to stop each game when someone won!!
   println("EX 5: ")
-  computeAnyGameUntilSomeoneWinOrUntilNMoves(O, 6).foreach { g =>
+  computeAnyGameUntilSomeoneWinOrUntilNMoves(O, 6).zipWithIndex.foreach {(g, n) =>
     if g.lastOption.forall(b => someoneIsWinning(b)) then
+      println(s"Game $n")
       printBoards(g)
       println()
   }
