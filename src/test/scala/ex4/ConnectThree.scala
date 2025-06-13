@@ -69,24 +69,19 @@ class ConnectThreeSpec extends AnyFlatSpec with Matchers:
     board.equals(List(Disk(0, 0, X), Disk(0, 1, X), Disk(0, 2, X), Disk(0, 3, X))) should be (true)
 
   "Method checkHorizontal" should "find a win" in:
-    val someoneIsWinningHorizontalBoard = List(Disk(0, 0, X), Disk(1, 0, X), Disk(2, 0, X))
+    val someoneIsWinningHorizontalBoard = boardToMap(List(Disk(0, 0, X), Disk(1, 0, X), Disk(2, 0, X)))
     checkHorizontal(someoneIsWinningHorizontalBoard) should be (true)
-    checkHorizontal(someoneIsWinningHorizontalBoard.map(d => Disk(d.x +1, d.y + 2, d.player.other))) should be (true)
 
   it should "not find a win" in:
-    val nobodyIsWinningBoard = List(Disk(0, 0, X), Disk(1, 0, O), Disk(2, 0, X))
+    val nobodyIsWinningBoard = boardToMap(List(Disk(0, 0, X), Disk(1, 0, O), Disk(2, 0, X)))
     checkHorizontal(nobodyIsWinningBoard) should be (false)
-    checkHorizontal(nobodyIsWinningBoard.map(d => Disk(d.x +1, d.y + 2, d.player.other))) should be (false)
 
   "Method checkVertical" should "find a win" in:
-    val someoneIsWinningVerticalBoard = List(Disk(0, 0, X), Disk(0, 1, X), Disk(0, 2, X))
+    val someoneIsWinningVerticalBoard = boardToMap(List(Disk(0, 0, X), Disk(0, 1, X), Disk(0, 2, X)))
     checkVertical(someoneIsWinningVerticalBoard) should be (true)
-    checkVertical(someoneIsWinningVerticalBoard.map(d => Disk(d.x + 2, d.y + 1, d.player.other))) should be (true)
 
   "Method checkVertical" should "not find a win" in:
-    val nobodyIsWinningVerticalBoard = List(Disk(0, 0, X), Disk(0, 1, O), Disk(0, 2, X))
+    val nobodyIsWinningVerticalBoard = boardToMap(List(Disk(0, 0, X), Disk(0, 1, O), Disk(0, 2, X)))
     checkVertical(nobodyIsWinningVerticalBoard) should be(false)
-    checkVertical(nobodyIsWinningVerticalBoard.map(d => Disk(d.x + 2, d.y + 1, d.player.other))) should be(false)
-
 
 

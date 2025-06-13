@@ -55,32 +55,60 @@ object ConnectThree extends App:
       yield
         game :+ new_board
 
+  def boardToMap(board: Board): Map[(Int, Int), Player] = board.map(d => (d.x, d.y) -> d.player).toMap
+
   def someoneIsWinning(board: Board): Boolean = {
-    checkHorizontal(board)
+    val boardMap = boardToMap(board)
+    checkHorizontal(boardMap) || checkVertical(boardMap) || checkDiagonal1(boardMap) || checkDiagonal2(boardMap)
   }
 
-  def checkStreak(board: Board): Boolean =
+  def checkStreak(board: Map[(Int, Int), Player], xRange: Range, yRange: Range, nextPos: (Int, Int, Int) => (Int, Int)): Boolean =
     val isThereAStreak: Seq[Boolean] =
       for
-        p <- Seq(X, O)
-        x <- 0 to bound - streakToWin + 1
-        y <- 0 to bound
-        if find(board, x, y).isDefined
+        p <- Player.values
+        x <- xRange
+        y <- yRange
+        if board.exists(e => e._1 == (x, y) && e._2 == p)
       yield
         val row: Seq[Boolean] =
           for
             i <- 0 until streakToWin
           yield
-            find(board, x + i, y) match
-              case Some(player) => player == p
-              case _ => false
+            board.get(nextPos(x, y, i)).contains(p)
         row.forall(identity)
     isThereAStreak.exists(identity)
 
+  def checkHorizontal(board: Map[(Int, Int), Player]): Boolean =
+    checkStreak(
+      board,
+      0 to bound - streakToWin + 1,
+      0 to bound,
+      (x, y, i) => (x + i, y)
+    )
 
-  def checkHorizontal(board: Board): Boolean = checkStreak(board)
+  def checkVertical(board: Map[(Int, Int), Player]): Boolean =
+    checkStreak(
+      board,
+      0 to bound,
+      0 to bound - streakToWin + 1,
+      (x, y, i) => (x, y + 1)
+    )
 
-  def checkVertical(board: Board): Boolean = checkStreak(board.map(d => Disk(d.y, d.x, d.player)))
+  def checkDiagonal1(board: Map[(Int, Int), Player]): Boolean =
+    checkStreak(
+      board,
+      0 to bound - streakToWin + 1,
+      0 to bound - streakToWin + 1,
+      (x, y, i) => (x + i, y + 1)
+    )
+
+  def checkDiagonal2(board: Map[(Int, Int), Player]): Boolean =
+    checkStreak(
+      board,
+      0 to bound - streakToWin + 1,
+      0 + streakToWin - 1 to bound,
+      (x, y, i) => (x + i, y - i)
+    )
 
   def computeAnyGameThatStop(player: Player, moves: Int): LazyList[Game] = moves match
     case 0 => LazyList(newGame)
@@ -88,7 +116,7 @@ object ConnectThree extends App:
       for
         game <- computeAnyGameThatStop(player.other, moves - 1)
         new_board <- placeAnyDisk(game.last, player)
-        //if !someoneIsWinning(new_board)
+        if !someoneIsWinning(new_board)
       yield game :+ new_board
 
 
@@ -205,7 +233,7 @@ object ConnectThree extends App:
 
 // Exercise 4 (VERY ADVANCED!) -- modify the above one so as to stop each game when someone won!!
   println("EX 5: ")
-  computeAnyGameThatStop(O, 4).foreach { g =>
+  computeAnyGameThatStop(O, 6).foreach { g =>
     printBoards(g)
     println()
   }
