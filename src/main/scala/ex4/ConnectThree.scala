@@ -56,41 +56,31 @@ object ConnectThree extends App:
         game :+ new_board
 
   def someoneIsWinning(board: Board): Boolean = {
-    val res: Seq[Boolean] = for {
-      p <- LazyList(X, O)
-      x <- 0 to bound - streakToWin + 1
-      y <- 0 to bound
-    } yield checkHorizontal(board, p, x, y) || checkVertical(board, p, x, y) || checkOb(board, p, x, y)
-    res.exists(identity)
+    checkHorizontal(board)
   }
 
-  def checkHorizontal(board: Board, player: Player, x: Int, y: Int): Boolean = {
-    board.filter{d =>
-        (d.player == player) &&
-        (d.y == y) &&
-        (d.x >= x) &&
-        (d.x < x + streakToWin)
-      }.map(_ => 1)
-      .sum == streakToWin
-  }
+  def checkStreak(board: Board): Boolean =
+    val isThereAStreak: Seq[Boolean] =
+      for
+        p <- Seq(X, O)
+        x <- 0 to bound - streakToWin + 1
+        y <- 0 to bound
+        if find(board, x, y).isDefined
+      yield
+        val row: Seq[Boolean] =
+          for
+            i <- 0 until streakToWin
+          yield
+            find(board, x + i, y) match
+              case Some(player) => player == p
+              case _ => false
+        row.forall(identity)
+    isThereAStreak.exists(identity)
 
-  def checkVertical(board: Board, player: Player, x: Int, y: Int): Boolean = {
-    board.filter{d =>
-        (d.player == player) &&
-          (d.x == x) &&
-          (d.y >= y) &&
-          (d.y < y + streakToWin)
-      }.map(_ => 1)
-      .sum == streakToWin
-  }
 
-  def checkOb(board: Board, player: Player, x: Int, y: Int): Boolean =
-    board.filter{d =>
-      (d.player == player) &&
-        ((d.x - x) == (d.y - y)) &&
-        ((d.x - x) >= 0) &&
-        ((d.x - x) < streakToWin)
-    }.map(d => 1).sum == streakToWin
+  def checkHorizontal(board: Board): Boolean = checkStreak(board)
+
+  def checkVertical(board: Board): Boolean = checkStreak(board.map(d => Disk(d.y, d.x, d.player)))
 
   def computeAnyGameThatStop(player: Player, moves: Int): LazyList[Game] = moves match
     case 0 => LazyList(newGame)
@@ -115,8 +105,74 @@ object ConnectThree extends App:
       if x == bound then
         print(" ")
         if board == game.head then println()
-  }
+  } // Exercise 1: implement find such that..
+  println("EX 1: ")
+  println(find(List(Disk(0,
+    0,
+    X)),
+    0,
+    0)) // Some(X)
+  println(find(List(Disk(0,
+    0,
+    X),
+    Disk(0,
+      1,
+      O),
+    Disk(0,
+      2,
+      X)),
+    0,
+    1)) // Some(O)
+  println(find(List(Disk(0,
+    0,
+    X),
+    Disk(0,
+      1,
+      O),
+    Disk(0,
+      2,
+      X)),
+    1,
+    1)) // None
 
+  // Exercise 2: implement firstAvailableRow such that..
+  println("EX 2: ")
+  println(firstAvailableRow(List(),
+    0)) // Some(0)
+  println(firstAvailableRow(List(Disk(0,
+    0,
+    X)),
+    0)) // Some(1)
+  println(firstAvailableRow(List(Disk(0,
+    0,
+    X),
+    Disk(0,
+      1,
+      X)),
+    0)) // Some(2)
+  println(firstAvailableRow(List(Disk(0,
+    0,
+    X),
+    Disk(0,
+      1,
+      X),
+    Disk(0,
+      2,
+      X)),
+    0)) // Some(3)
+  println(firstAvailableRow(List(Disk(0,
+    0,
+    X),
+    Disk(0,
+      1,
+      X),
+    Disk(0,
+      2,
+      X),
+    Disk(0,
+      3,
+      X)),
+    0)) // None
   // Exercise 3: implement placeAnyDisk such that..
   println("EX 3:")
   printBoards(placeAnyDisk(List(), X))
