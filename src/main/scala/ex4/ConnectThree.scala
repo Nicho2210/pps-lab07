@@ -132,7 +132,7 @@ object ConnectThree extends App:
     getMaxStreak(boardMap, p, 0 to bound, 0 to bound - streakToWin + 1, (x, y, i) => (x, y + i))
 
   def getMaxDiagonal1Streak(boardMap: Map[(Int, Int), Player], p: Player): Int =
-    getMaxStreak(boardMap, p, 0 to bound - streakToWin + 1, 0 to bound - streakToWin + 1, (x, y, i) => (x, y + i))
+    getMaxStreak(boardMap, p, 0 to bound - streakToWin + 1, 0 to bound - streakToWin + 1, (x, y, i) => (x + i, y + i))
 
   def getMaxDiagonal2Streak(boardMap: Map[(Int, Int), Player], p: Player): Int =
     getMaxStreak(boardMap, p, 0 to bound - streakToWin + 1, 0 + streakToWin - 1 to bound, (x, y, i) => (x + i, y - i))

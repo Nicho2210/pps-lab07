@@ -186,4 +186,21 @@ class ConnectThreeSpec extends AnyFlatSpec with Matchers:
     getMaxVerticalStreak(boardToMap(boardX1Interrupted), X) should be (1)
     getMaxVerticalStreak(boardToMap(boardX1Interrupted), O) should be (1)
 
+  "Method getMaxDiagonal1Streak" should "work correctly" in:
+    val boardX1: Board = List(Disk(0, 0, X))
+    val boardX2: Board = List(Disk(0, 0, X), Disk(1, 1, X))
+    val boardX3: Board = List(Disk(0, 0, X), Disk(1, 1, X), Disk(2, 2, X))
+    val boardX1Interrupted: Board = List(Disk(0, 0, X), Disk(1, 1, O), Disk(2, 2, X))
+    getMaxDiagonal1Streak(boardToMap(emptyBoard), O) should be (0)
+    getMaxDiagonal1Streak(boardToMap(emptyBoard), X) should be (0)
+    getMaxDiagonal1Streak(boardToMap(boardX1), X) should be (1)
+    getMaxDiagonal1Streak(boardToMap(boardX2), X) should be (2)
+    getMaxDiagonal1Streak(boardToMap(boardX3), X) should be (3)
+    getMaxDiagonal1Streak(boardToMap(boardX1), O) should be (0)
+    getMaxDiagonal1Streak(boardToMap(boardX2), O) should be (0)
+    getMaxDiagonal1Streak(boardToMap(boardX1Interrupted), X) should be (1)
+    getMaxDiagonal1Streak(boardToMap(boardX1Interrupted), O) should be (1)
+    
+    
+
 
