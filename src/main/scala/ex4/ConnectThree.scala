@@ -52,45 +52,15 @@ object ConnectThree extends App:
   def boardToMap(board: Board): Map[(Int, Int), Player] =
     board.map(d => (d.x, d.y) -> d.player).toMap
 
-  def someoneIsWinning(board: Board): Boolean = {
-    val boardMap = boardToMap(board)
-    checkHorizontal(boardMap) || checkVertical(boardMap) || checkDiagonal1(boardMap) || checkDiagonal2(boardMap)
-  }
-
-  def checkStreak(board: Map[(Int, Int), Player], xRange: Range, yRange: Range, nextPos: (Int, Int, Int) => (Int, Int)): Boolean =
-    val isThereAStreak: Seq[Boolean] =
-      for
-        p <- Player.values
-        x <- xRange
-        y <- yRange
-      yield
-        val currentSegment: Boolean =
-          (0 until streakToWin).forall(
-            i =>
-              val (cx, cy) = nextPos(x, y, i)
-              board.get((cx, cy)).contains(p)
-          )
-        currentSegment
-    isThereAStreak.exists(identity)
-
-  def checkHorizontal(board: Map[(Int, Int), Player]): Boolean =
-    checkStreak(board, 0 to bound - streakToWin + 1, 0 to bound, (x, y, i) => (x + i, y))
-
-  def checkVertical(board: Map[(Int, Int), Player]): Boolean =
-    checkStreak(board, 0 to bound, 0 to bound - streakToWin + 1, (x, y, i) => (x, y + i))
-
-  def checkDiagonal1(board: Map[(Int, Int), Player]): Boolean =
-    checkStreak(board, 0 to bound - streakToWin + 1, 0 to bound - streakToWin + 1, (x, y, i) => (x + i, y + i))
-
-  def checkDiagonal2(board: Map[(Int, Int), Player]): Boolean =
-    checkStreak(board, 0 to bound - streakToWin + 1, 0 + streakToWin - 1 to bound, (x, y, i) => (x + i, y - i))
+  extension (p: Player)
+    def IsWinning(board: Board): Boolean = getMaxStreak(boardToMap(board), p) >= streakToWin
 
   def computeAnyGameUntilSomeoneWinOrUntilNMoves(player: Player, moves: Int): LazyList[Game] = moves match
     case 0 => LazyList(newGame)
     case _ =>
       for
         game <- computeAnyGameUntilSomeoneWinOrUntilNMoves(player.other, moves - 1)
-        if game.lastOption.forall(b => !someoneIsWinning(b))
+        if !Player.values.exists(p => p.IsWinning(game.last))
         new_board <- placeAnyDisk(game.last, player)
       yield game :+ new_board
 
@@ -113,7 +83,15 @@ object ConnectThree extends App:
     }
   }
 
-  def getMaxStreak(boardMap: Map[(Int, Int), Player], p: Player, xRange: Range, yRange: Range, nextPos: (Int, Int, Int) => (Int, Int)): Int =
+  def getMaxStreak(boardMap: Map[(Int, Int), Player], p: Player): Int =
+    Seq(
+      getMaxHorizontalStreak(boardMap, p),
+      getMaxVerticalStreak(boardMap, p),
+      getMaxDiagonal1Streak(boardMap, p),
+      getMaxDiagonal2Streak(boardMap, p)
+    ).max
+
+  def getMaxStreakOn(boardMap: Map[(Int, Int), Player], p: Player, xRange: Range, yRange: Range, nextPos: (Int, Int, Int) => (Int, Int)): Int =
     var maxFoundStreak = 0
     for
       x <- xRange
@@ -126,16 +104,16 @@ object ConnectThree extends App:
     maxFoundStreak
 
   def getMaxHorizontalStreak(boardMap: Map[(Int, Int), Player], p: Player): Int =
-    getMaxStreak(boardMap, p, 0 to bound - streakToWin + 1, 0 to bound, (x, y, i) => (x + i, y))
+    getMaxStreakOn(boardMap, p, 0 to bound - streakToWin + 1, 0 to bound, (x, y, i) => (x + i, y))
 
   def getMaxVerticalStreak(boardMap: Map[(Int, Int), Player], p: Player): Int =
-    getMaxStreak(boardMap, p, 0 to bound, 0 to bound - streakToWin + 1, (x, y, i) => (x, y + i))
+    getMaxStreakOn(boardMap, p, 0 to bound, 0 to bound - streakToWin + 1, (x, y, i) => (x, y + i))
 
   def getMaxDiagonal1Streak(boardMap: Map[(Int, Int), Player], p: Player): Int =
-    getMaxStreak(boardMap, p, 0 to bound - streakToWin + 1, 0 to bound - streakToWin + 1, (x, y, i) => (x + i, y + i))
+    getMaxStreakOn(boardMap, p, 0 to bound - streakToWin + 1, 0 to bound - streakToWin + 1, (x, y, i) => (x + i, y + i))
 
   def getMaxDiagonal2Streak(boardMap: Map[(Int, Int), Player], p: Player): Int =
-    getMaxStreak(boardMap, p, 0 to bound - streakToWin + 1, 0 + streakToWin - 1 to bound, (x, y, i) => (x + i, y - i))
+    getMaxStreakOn(boardMap, p, 0 to bound - streakToWin + 1, 0 + streakToWin - 1 to bound, (x, y, i) => (x + i, y - i))
 
   trait AI:
     def player: Player
@@ -180,10 +158,10 @@ object ConnectThree extends App:
 
   // Exercise 4 (ADVANCED!): implement computeAnyGame such that...
   println("EX 4:")
-  computeAnyGame(O, 5).foreach { g =>
-    if g.lastOption.forall(b => someoneIsWinning(b)) then
-      printBoards(g)
-      println()
+  computeAnyGame(O, 5).zipWithIndex.foreach { (g, n) =>
+    println(s"Game $n")
+    printBoards(g)
+    println()
   }
   //  .... .... .... .... ...O
   //  .... .... .... ...X ...X
@@ -199,7 +177,7 @@ object ConnectThree extends App:
 // Exercise 4 (VERY ADVANCED!) -- modify the above one to stop each game when someone won!!
   println("EX 5: ")
   computeAnyGameUntilSomeoneWinOrUntilNMoves(O, 6).zipWithIndex.foreach {(g, n) =>
-    if g.lastOption.forall(b => someoneIsWinning(b)) then
+    if Player.values.exists(p => p.IsWinning(g.last)) then
       println(s"Game $n")
       printBoards(g)
       println()
@@ -223,7 +201,7 @@ object ConnectThree extends App:
 //      case "N" => currentPlayer = Option(1)
 //      case _ => println("Valore non valido: digitare 'Y' or 'N'")
 //  val cols = (0 to bound).toList
-//  while !someoneIsWinning(gameVSAI.last) &&  gameVSAI.last.size < (bound + 1) * (bound + 1) do {
+//  while !Player.values.exists(p => p.IsWinning(gameVSAI.last)) &&  gameVSAI.last.size < (bound + 1) * (bound + 1) do {
 //    val currentDisks: Int = gameVSAI.last.size
 //      println("Current Board:")
 //      printBoards(Seq(gameVSAI.last))
@@ -252,7 +230,7 @@ object ConnectThree extends App:
 //  if gameVSAI.last.size == (bound + 1) * (bound + 1) then
 //    println("It-s a draw")
 //  else
-//    val winner = if ((currentPlayer.get + 1) % 2) == 0 then player.get else player.get.other
+//    val winner = Player.values.filter(p => p.IsWinning(gameVSAI.last)).head
 //    println(s"$winner is the winner")
 //  println("Final Board:")
 //  printBoards(Seq(gameVSAI.last))

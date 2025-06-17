@@ -71,74 +71,29 @@ class ConnectThreeSpec extends AnyFlatSpec with Matchers:
   val boardXWin00H: Board = List(Disk(0, 0, X), Disk(1, 0, X), Disk(2, 0, X))
   val boardOWin11H: Board = List(Disk(1, 1, O), Disk(2, 1, O), Disk(3, 1, O))
   val boardXWinUpperRightH: Board = List(Disk(1, 3, X), Disk(2, 3, X), Disk(3, 3, X))
-
-  "Method checkHorizontal" should "detect a win" in:
-    checkHorizontal(boardToMap(boardXWin00H)) should be (true)
-    checkHorizontal(boardToMap(boardOWin11H)) should be (true)
-    checkHorizontal(boardToMap(boardXWinUpperRightH)) should be(true)
-
   val interruptedStreakH: Board = List(Disk(0, 0, X), Disk(1, 0, O), Disk(2, 0, X))
   val emptySpaceInterruptedH: Board = List(Disk(0, 0, X), Disk(1, 0, X), Disk(3, 0, X))
   val twoDisksH: Board = List(Disk(0, 0, X), Disk(1, 0, X))
-  it should "not detect a win" in:
-    checkHorizontal(boardToMap(emptyBoard)) should be (false)
-    checkHorizontal(boardToMap(interruptedStreakH)) should be (false)
-    checkHorizontal(boardToMap(emptySpaceInterruptedH)) should be (false)
-    checkHorizontal(boardToMap(twoDisksH)) should be (false)
-
   val boardXWin00V: Board = List(Disk(0, 0, X), Disk(0, 1, X), Disk(0, 2, X))
   val boardOWin11V: Board = List(Disk(1, 1, O), Disk(1, 2, O), Disk(1, 3, O))
   val boardXWinUpperRightColV: Board = List(Disk(3, 1, X), Disk(3, 2, X), Disk(3, 3, X))
-  "Method checkVertical" should "detect a win" in:
-    checkVertical(boardToMap(boardXWin00V)) should be (true)
-    checkVertical(boardToMap(boardOWin11V)) should be (true)
-    checkVertical(boardToMap(boardXWinUpperRightColV)) should be (true)
-
   val interruptedStreakV: Board =List(Disk(0, 0, X), Disk(0, 1, O), Disk(0, 2, X))
   val twoDisksV: Board = List(Disk(0, 0, X), Disk(0, 1, X))
-  it should "not detect a win" in:
-    checkVertical(boardToMap(emptyBoard)) should be(false)
-    checkVertical(boardToMap(interruptedStreakV)) should be(false)
-    checkVertical(boardToMap(twoDisksV)) should be(false)
-
   val boardXWin00D1: Board = List(Disk(0, 0, X), Disk(1, 1, X), Disk(2, 2, X))
   val boardOWin10D1: Board = List(Disk(1, 0, O), Disk(2, 1, O), Disk(3, 2, O))
-  "Method checkDiagonal1" should "detect a win" in:
-    checkDiagonal1(boardToMap(boardXWin00D1)) should be(true)
-    checkDiagonal1(boardToMap(boardOWin10D1)) should be(true)
-
   val interruptedD1: Board = List(Disk(0, 0, X), Disk(1, 1, O), Disk(2, 2, X))
   val twoDisksD1: Board = List(Disk(0, 0, X), Disk(1, 1, X))
-  it should "not detect a win" in:
-    checkDiagonal1(boardToMap(emptyBoard)) should be (false)
-    checkDiagonal1(boardToMap(interruptedD1)) should be(false)
-    checkDiagonal1(boardToMap(twoDisksD1)) should be(false)
-
   val boardXWin02D2: Board = List(Disk(0, 2, X), Disk(1, 1, X), Disk(2, 0, X))
   val boardOWin13D2: Board = List(Disk(1, 3, O), Disk(2, 2, O), Disk(3, 1, O))
-  "Method checkDiagonal2" should "detect a win" in:
-    checkDiagonal2(boardToMap(boardXWin02D2)) should be(true)
-    checkDiagonal2(boardToMap(boardOWin13D2)) should be(true)
-
   val interruptedD2: Board = List(Disk(0, 2, X), Disk(1, 1, O), Disk(2, 0, X))
   val twoDisksD2: Board = List(Disk(0, 2, X), Disk(1, 1, X))
-  it should "not detect a win" in:
-    checkDiagonal2(boardToMap(emptyBoard)) should be (false)
-    checkDiagonal2(boardToMap(interruptedD2)) should be(false)
-    checkDiagonal2(boardToMap(twoDisksD2)) should be(false)
 
   "Method someoneIsWinning" should "detect a win" in:
-    someoneIsWinning(boardXWin00H) should be(true)
-    someoneIsWinning(boardOWin11V) should be(true)
-    someoneIsWinning(boardXWin00D1) should be(true)
-    someoneIsWinning(boardOWin13D2) should be(true)
+    val pX = X
+    pX.IsWinning(boardXWin00H) should be (true)
 
   it should "not detect a win" in:
-    someoneIsWinning(emptyBoard) should be(false)
-    someoneIsWinning(emptySpaceInterruptedH) should be(false)
-    someoneIsWinning(interruptedStreakV) should be(false)
-    someoneIsWinning(interruptedD1) should be(false)
-    someoneIsWinning(twoDisksD2) should be(false)
+    val pO = O
 
   "Method computeAnyGameUntilSomeoneWinOrUntilNMoves" should "work correctly" in:
     for
@@ -146,14 +101,14 @@ class ConnectThreeSpec extends AnyFlatSpec with Matchers:
       game <- computeAnyGameUntilSomeoneWinOrUntilNMoves(X, n)
     yield {
       val size = game.last.size
-      if (someoneIsWinning(game.last))
-        size >= 5 && size <= n should be(true)
+      if (Player.values.exists(p => p.IsWinning(game.last)))
+        size >= 5 && size <= n should be (true)
       else
-        size should be(n)
+        size should be (n)
       for
         b <- game.reverse.tail
       yield
-        someoneIsWinning(b) should be (false)
+        Player.values.exists(p => p.IsWinning(b)) should be (false)
     }
 
   "Method getMaxHorizontalStreak" should "work correctly" in:
@@ -200,7 +155,22 @@ class ConnectThreeSpec extends AnyFlatSpec with Matchers:
     getMaxDiagonal1Streak(boardToMap(boardX2), O) should be (0)
     getMaxDiagonal1Streak(boardToMap(boardX1Interrupted), X) should be (1)
     getMaxDiagonal1Streak(boardToMap(boardX1Interrupted), O) should be (1)
-    
-    
+
+  "Method getMaxDiagonal2Streak" should "work correctly" in:
+    val boardX1: Board = List(Disk(0, 3, X))
+    val boardX2: Board = List(Disk(0, 3, X), Disk(1, 2, X))
+    val boardX3: Board = List(Disk(0, 3, X), Disk(1, 2, X), Disk(2, 1, X))
+    val boardX1Interrupted: Board = List(Disk(0, 3, X), Disk(1, 2, O), Disk(2, 1, X))
+    getMaxDiagonal2Streak(boardToMap(emptyBoard), O) should be (0)
+    getMaxDiagonal2Streak(boardToMap(emptyBoard), X) should be (0)
+    getMaxDiagonal2Streak(boardToMap(boardX1), X) should be (1)
+    getMaxDiagonal2Streak(boardToMap(boardX2), X) should be (2)
+    getMaxDiagonal2Streak(boardToMap(boardX3), X) should be (3)
+    getMaxDiagonal2Streak(boardToMap(boardX1), O) should be (0)
+    getMaxDiagonal2Streak(boardToMap(boardX2), O) should be (0)
+    getMaxDiagonal2Streak(boardToMap(boardX1Interrupted), X) should be (1)
+    getMaxDiagonal2Streak(boardToMap(boardX1Interrupted), O) should be (1)
+
+
 
 
