@@ -133,6 +133,13 @@ object ConnectThree extends App:
       if x == bound then
         print(" ")
         if board == game.head then println()
+    for
+      n <- 1 to game.size
+      x <- 0 to bound
+    do {
+      print(s"$x")
+      if x == bound then print(" ")
+    }
   }
 
   trait AI:
@@ -219,6 +226,7 @@ object ConnectThree extends App:
     val currentDisks: Int = gameVSAI.last.size
       println("Current Board:")
       printBoards(Seq(gameVSAI.last))
+      println("")
       currentPlayer.get % 2 match {
         case 0 =>
           var validMoveMade = false
