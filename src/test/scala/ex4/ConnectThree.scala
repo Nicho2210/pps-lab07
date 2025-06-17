@@ -140,6 +140,12 @@ class ConnectThreeSpec extends AnyFlatSpec with Matchers:
     getMaxVerticalStreak(boardToMap(boardX2), O) should be (0)
     getMaxVerticalStreak(boardToMap(boardX1Interrupted), X) should be (1)
     getMaxVerticalStreak(boardToMap(boardX1Interrupted), O) should be (1)
+    val b: Board = List(Disk(0, 0, X), Disk(1, 0, X), Disk(2, 0, O), Disk(3, 0, X), Disk(0, 1, O), Disk(1, 1, X), Disk(0, 2, O), Disk(0, 3, O))
+    getMaxVerticalStreak(boardToMap(b), O) should be (3)
+
+  "Method " should "work" in:
+    val b: Board = List(Disk(0, 0, X), Disk(1, 0, X), Disk(2, 0, O), Disk(3, 0, X), Disk(0, 1, O), Disk(1, 1, X), Disk(0, 2, O), Disk(0, 3, O))
+    getMaxStreak(boardToMap(b), O) should be (3)
 
   "Method getMaxDiagonal1Streak" should "work correctly" in:
     val boardX1: Board = List(Disk(0, 0, X))
@@ -184,3 +190,9 @@ class ConnectThreeSpec extends AnyFlatSpec with Matchers:
     val b: Board = smartAIO.placeNextDisk(game2).last
     b == board should be (false)
 
+
+  "Method smartAI" should "work correctly (CASE TEST)" in:
+    val game1: Game = List(List(Disk(0, 0, X), Disk(1, 0, X), Disk(2, 0, O), Disk(3, 0, X), Disk(0, 1, O), Disk(1, 1, X), Disk(0, 2, O)))
+    val board: Board = List(Disk(0, 0, X), Disk(1, 0, X), Disk(2, 0, O), Disk(3, 0, X), Disk(0, 1, O), Disk(1, 1, X), Disk(0, 2, O), Disk(0, 3, O))
+    val smartAIO = AI.smartAI(O)
+    smartAIO.placeNextDisk(game1).last should be (board)

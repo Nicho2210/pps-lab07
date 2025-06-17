@@ -137,7 +137,7 @@ object ConnectThree extends App:
             x <- availableCol
             yield {
               val board = placeDisk(currentBoard, player, x)
-              val streak = getMaxStreak(boardToMap(currentBoard), player)
+              val streak = getMaxStreak(boardToMap(board), player)
               val opponentCouldWin: Boolean = placeAnyDisk(board, opponent).exists(b => getMaxStreak(boardToMap(b), opponent) >= streakToWin)
               x -> (board, streak, opponentCouldWin)
             }}.toMap
@@ -225,54 +225,62 @@ object ConnectThree extends App:
       println()
   }
 
-//  println("EX 6 (random AI): ")
-//  var gameVSAI: Game = Seq(emptyBoard)
-//  var player: Option[Player] = None
-//  while player.isEmpty do
-//    println("Digitare il player (X or O):")
-//    readLine() match
-//      case "X" => player = Option(X)
-//      case "O" => player = Option(O)
-//      case _ => println("Valore non valido: digitare 'X' or 'O'")
-//  var currentPlayer: Option[Int] = None
-//  val opponent = AI.randomAI(player.get.other)
-//  while currentPlayer.isEmpty do
-//    println("Vuoi essere il primo giocatore? (Y/N)")
-//    readLine() match
-//      case "Y" => currentPlayer = Option(0)
-//      case "N" => currentPlayer = Option(1)
-//      case _ => println("Valore non valido: digitare 'Y' or 'N'")
-//  val cols = (0 to bound).toList
-//  while !Player.values.exists(p => p.IsWinning(gameVSAI.last)) &&  gameVSAI.last.size < (bound + 1) * (bound + 1) do {
-//    val currentDisks: Int = gameVSAI.last.size
-//      println("Current Board:")
-//      printBoards(Seq(gameVSAI.last))
-//      println("")
-//      currentPlayer.get % 2 match {
-//        case 0 =>
-//          var validMoveMade = false
-//          while !validMoveMade do
-//            println("Seleziona colonna:")
-//            val selectedCol = readLine().toIntOption
-//            selectedCol match {
-//              case Some(col) if col >= 0 && col <= bound =>
-//                val nextBoard = placeDisk(gameVSAI.last, player.get, col)
-//                if gameVSAI.last != nextBoard then
-//                  gameVSAI = gameVSAI :+ nextBoard
-//                  validMoveMade = true
-//                else
-//                  println("Selezione non valida")
-//              case _ => println(s"Input non valido. Digitare un numero tra 0 e $bound")
-//            }
-//        case 1 =>
-//          gameVSAI = opponent.placeNextDisk(gameVSAI)
-//      }
-//    currentPlayer = Option((currentPlayer.get +  1) % 2)
-//  }
-//  if gameVSAI.last.size == (bound + 1) * (bound + 1) then
-//    println("It-s a draw")
-//  else
-//    val winner = Player.values.filter(p => p.IsWinning(gameVSAI.last)).head
-//    println(s"$winner is the winner")
-//  println("Final Board:")
-//  printBoards(Seq(gameVSAI.last))
+  println("EX 6 (random AI): ")
+  var gameVSAI: Game = Seq(emptyBoard)
+  var player: Option[Player] = None
+  while player.isEmpty do
+    println("Digitare il player (X o O):")
+    readLine() match
+      case "X" => player = Option(X)
+      case "O" => player = Option(O)
+      case _ => println("Valore non valido: digitare 'X' o 'O'")
+  var currentPlayer: Option[Int] = None
+  var opponent: Option[AI] = None
+  while opponent.isEmpty do {
+    println("Select opponent: R = Random or S = Smart")
+    readLine() match {
+      case "R" => opponent = Option(AI.randomAI(player.get.other))
+      case "S" => opponent = Option(AI.smartAI(player.get.other))
+      case _ => println("Valore non valido: digitare 'R' o 'S'")
+    }
+  }
+  while currentPlayer.isEmpty do
+    println("Vuoi essere il primo giocatore? (Y/N)")
+    readLine() match
+      case "Y" => currentPlayer = Option(0)
+      case "N" => currentPlayer = Option(1)
+      case _ => println("Valore non valido: digitare 'Y' or 'N'")
+  val cols = (0 to bound).toList
+  while !Player.values.exists(p => p.IsWinning(gameVSAI.last)) &&  gameVSAI.last.size < (bound + 1) * (bound + 1) do {
+    val currentDisks: Int = gameVSAI.last.size
+      println("Current Board:")
+      printBoards(Seq(gameVSAI.last))
+      println("")
+      currentPlayer.get % 2 match {
+        case 0 =>
+          var validMoveMade = false
+          while !validMoveMade do
+            println("Seleziona colonna:")
+            val selectedCol = readLine().toIntOption
+            selectedCol match {
+              case Some(col) if col >= 0 && col <= bound =>
+                val nextBoard = placeDisk(gameVSAI.last, player.get, col)
+                if gameVSAI.last != nextBoard then
+                  gameVSAI = gameVSAI :+ nextBoard
+                  validMoveMade = true
+                else
+                  println("Selezione non valida")
+              case _ => println(s"Input non valido. Digitare un numero tra 0 e $bound")
+            }
+        case 1 =>
+          gameVSAI = opponent.get.placeNextDisk(gameVSAI)
+      }
+    currentPlayer = Option((currentPlayer.get +  1) % 2)
+  }
+  if gameVSAI.last.size == (bound + 1) * (bound + 1) then
+    println("It-s a draw")
+  else
+    val winner = Player.values.filter(p => p.IsWinning(gameVSAI.last)).head
+    println(s"$winner is the winner")
+  println("Final Board:")
+  printBoards(Seq(gameVSAI.last))
