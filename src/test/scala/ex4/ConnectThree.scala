@@ -156,4 +156,18 @@ class ConnectThreeSpec extends AnyFlatSpec with Matchers:
         someoneIsWinning(b) should be (false)
     }
 
+  "Method getMaxHorizontalStreak" should "work correctly" in:
+    val boardX1: Board = List(Disk(0, 0, X))
+    val boardX2: Board = List(Disk(0, 0, X), Disk(1, 0, X))
+    val boardX3: Board = List(Disk(0, 0, X), Disk(1, 0, X), Disk(2, 0, X))
+    val boardX1Interrupted: Board = List(Disk(0, 0, X), Disk(1, 0, O), Disk(2, 0, X))
+    getMaxHorizontalStreak(boardToMap(emptyBoard), O) should be (0)
+    getMaxHorizontalStreak(boardToMap(emptyBoard), X) should be (0)
+    getMaxHorizontalStreak(boardToMap(boardX1), X) should be (1)
+    getMaxHorizontalStreak(boardToMap(boardX2), X) should be (2)
+    getMaxHorizontalStreak(boardToMap(boardX3), X) should be (3)
+    getMaxHorizontalStreak(boardToMap(boardX1), O) should be (0)
+    getMaxHorizontalStreak(boardToMap(boardX2), O) should be (0)
+    getMaxHorizontalStreak(boardToMap(boardX1Interrupted), X) should be (1)
+    getMaxHorizontalStreak(boardToMap(boardX1Interrupted), O) should be (1)
 

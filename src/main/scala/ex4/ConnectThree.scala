@@ -13,16 +13,6 @@ object ConnectThree extends App:
       case _ => X
 
   case class Disk(x: Int, y: Int, player: Player)
-  /**
-   * Board:
-   * y
-   *
-   * 3
-   * 2
-   * 1
-   * 0
-   *   0 1 2 3 <-- x
-   */
   type Board = Seq[Disk]
   type Game = Seq[Board]
 
@@ -30,7 +20,8 @@ object ConnectThree extends App:
   def newGame: Game = Seq(emptyBoard)
   import Player.*
 
-  def find(board: Board, x: Int, y: Int): Option[Player] = board.find(d => (d.x == x) && (d.y == y)).map(_.player)
+  def find(board: Board, x: Int, y: Int): Option[Player] =
+    board.find(d => (d.x == x) && (d.y == y)).map(_.player)
 
   def firstAvailableRow(board: Board, x: Int): Option[Int] =
     (for
@@ -44,10 +35,10 @@ object ConnectThree extends App:
       y <- firstAvailableRow(board, x)
     yield board :+ Disk(x, y, player)
 
-  def placeDisk(board: Board, player: Player, x: Int): Board = firstAvailableRow(board, x) match {
-    case Some(y) => board :+ Disk(x, y, player)
-    case _ => board
-  }
+  def placeDisk(board: Board, player: Player, x: Int): Board =
+    firstAvailableRow(board, x) match
+      case Some(y) => board :+ Disk(x, y, player)
+      case _ => board
 
   def computeAnyGame(player: Player, moves: Int): LazyList[Game] = moves match
     case 0 => LazyList(newGame)
@@ -58,7 +49,8 @@ object ConnectThree extends App:
       yield
         game :+ new_board
 
-  def boardToMap(board: Board): Map[(Int, Int), Player] = board.map(d => (d.x, d.y) -> d.player).toMap
+  def boardToMap(board: Board): Map[(Int, Int), Player] =
+    board.map(d => (d.x, d.y) -> d.player).toMap
 
   def someoneIsWinning(board: Board): Boolean = {
     val boardMap = boardToMap(board)
@@ -82,36 +74,16 @@ object ConnectThree extends App:
     isThereAStreak.exists(identity)
 
   def checkHorizontal(board: Map[(Int, Int), Player]): Boolean =
-    checkStreak(
-      board,
-      0 to bound - streakToWin + 1,
-      0 to bound,
-      (x, y, i) => (x + i, y)
-    )
+    checkStreak(board, 0 to bound - streakToWin + 1, 0 to bound, (x, y, i) => (x + i, y))
 
   def checkVertical(board: Map[(Int, Int), Player]): Boolean =
-    checkStreak(
-      board,
-      0 to bound,
-      0 to bound - streakToWin + 1,
-      (x, y, i) => (x, y + i)
-    )
+    checkStreak(board, 0 to bound, 0 to bound - streakToWin + 1, (x, y, i) => (x, y + i))
 
   def checkDiagonal1(board: Map[(Int, Int), Player]): Boolean =
-    checkStreak(
-      board,
-      0 to bound - streakToWin + 1,
-      0 to bound - streakToWin + 1,
-      (x, y, i) => (x + i, y + i)
-    )
+    checkStreak(board, 0 to bound - streakToWin + 1, 0 to bound - streakToWin + 1, (x, y, i) => (x + i, y + i))
 
   def checkDiagonal2(board: Map[(Int, Int), Player]): Boolean =
-    checkStreak(
-      board,
-      0 to bound - streakToWin + 1,
-      0 + streakToWin - 1 to bound,
-      (x, y, i) => (x + i, y - i)
-    )
+    checkStreak(board, 0 to bound - streakToWin + 1, 0 + streakToWin - 1 to bound, (x, y, i) => (x + i, y - i))
 
   def computeAnyGameUntilSomeoneWinOrUntilNMoves(player: Player, moves: Int): LazyList[Game] = moves match
     case 0 => LazyList(newGame)
@@ -121,7 +93,6 @@ object ConnectThree extends App:
         if game.lastOption.forall(b => !someoneIsWinning(b))
         new_board <- placeAnyDisk(game.last, player)
       yield game :+ new_board
-
 
   def printBoards(game: Seq[Board]): Unit = {
     for
@@ -142,6 +113,30 @@ object ConnectThree extends App:
     }
   }
 
+  def getMaxStreak(boardMap: Map[(Int, Int), Player], p: Player, xRange: Range, yRange: Range, nextPos: (Int, Int, Int) => (Int, Int)): Int =
+    var maxFoundStreak = 0
+    for
+      x <- xRange
+      y <- yRange
+    do
+      val currentStreak = (0 until streakToWin).takeWhile{i =>
+      val (cx, cy) = nextPos(x, y, i)
+      boardMap.get((cx, cy)).contains(p)}.size
+      maxFoundStreak = maxFoundStreak.max(currentStreak)
+    maxFoundStreak
+
+  def getMaxHorizontalStreak(boardMap: Map[(Int, Int), Player], p: Player): Int =
+    getMaxStreak(boardMap, p, 0 to bound - streakToWin + 1, 0 to bound, (x, y, i) => (x + i, y))
+
+  def getMaxVerticalStreak(boardMap: Map[(Int, Int), Player], p: Player): Int =
+    getMaxStreak(boardMap, p, 0 to bound, 0 to bound - streakToWin + 1, (x, y, i) => (x, y + i))
+
+  def getMaxDiagonal1Streak(boardMap: Map[(Int, Int), Player], p: Player): Int =
+    getMaxStreak(boardMap, p, 0 to bound - streakToWin + 1, 0 to bound - streakToWin + 1, (x, y, i) => (x, y + i))
+
+  def getMaxDiagonal2Streak(boardMap: Map[(Int, Int), Player], p: Player): Int =
+    getMaxStreak(boardMap, p, 0 to bound - streakToWin + 1, 0 + streakToWin - 1 to bound, (x, y, i) => (x + i, y - i))
+
   trait AI:
     def player: Player
     def placeNextDisk(game: Game): Game
@@ -150,8 +145,15 @@ object ConnectThree extends App:
 
     def randomAI(player: Player): AI = randomAIImpl(player)
 
+    def smartAI(player: Player): AI = smartAIImpl(player)
+
+    private case class smartAIImpl(player: ConnectThree.Player) extends AI:
+      assert(Player.values.contains(player))
+
+      override def placeNextDisk(game: Game): Game = ???
+
     private case class randomAIImpl(override val player: Player) extends AI:
-      assert(player != null)
+      assert(Player.values.contains(player))
 
       override def placeNextDisk(game: Game): Game =
         val currentBoard = game.lastOption.getOrElse(emptyBoard)
@@ -203,55 +205,54 @@ object ConnectThree extends App:
       println()
   }
 
-  println("EX 6 (random AI): ")
-
-  var gameVSAI: Game = Seq(emptyBoard)
-  var player: Option[Player] = None
-  while player.isEmpty do
-    println("Digitare il player (X or O):")
-    readLine() match
-      case "X" => player = Option(X)
-      case "O" => player = Option(O)
-      case _ => println("Valore non valido: digitare 'X' or 'O'")
-  var currentPlayer: Option[Int] = None
-  val randomAI = AI.randomAI(player.get.other)
-  while currentPlayer.isEmpty do
-    println("Vuoi essere il primo giocatore? (Y/N)")
-    readLine() match
-      case "Y" => currentPlayer = Option(0)
-      case "N" => currentPlayer = Option(1)
-      case _ => println("Valore non valido: digitare 'Y' or 'N'")
-  val cols = (0 to bound).toList
-  while !someoneIsWinning(gameVSAI.last) &&  gameVSAI.last.size < (bound + 1) * (bound + 1) do {
-    val currentDisks: Int = gameVSAI.last.size
-      println("Current Board:")
-      printBoards(Seq(gameVSAI.last))
-      println("")
-      currentPlayer.get % 2 match {
-        case 0 =>
-          var validMoveMade = false
-          while !validMoveMade do
-            println("Seleziona colonna:")
-            val selectedCol = readLine().toIntOption
-            selectedCol match {
-              case Some(col) if col >= 0 && col <= bound =>
-                val nextBoard = placeDisk(gameVSAI.last, player.get, col)
-                if gameVSAI.last != nextBoard then
-                  gameVSAI = gameVSAI :+ nextBoard
-                  validMoveMade = true
-                else
-                  println("Selezione non valida")
-              case _ => println(s"Input non valido. Digitare un numero tra 0 e $bound")
-            }
-        case 1 =>
-          gameVSAI = randomAI.placeNextDisk(gameVSAI)
-      }
-    currentPlayer = Option((currentPlayer.get + 1) % 2)
-  }
-  if gameVSAI.last.size == (bound + 1) * (bound + 1) then
-    println("It-s a draw")
-  else
-    val winner = if ((currentPlayer.get + 1) % 2) == 0 then player.get else player.get.other
-    println(s"$winner is the winner")
-  println("Final Board:")
-  printBoards(Seq(gameVSAI.last))
+//  println("EX 6 (random AI): ")
+//  var gameVSAI: Game = Seq(emptyBoard)
+//  var player: Option[Player] = None
+//  while player.isEmpty do
+//    println("Digitare il player (X or O):")
+//    readLine() match
+//      case "X" => player = Option(X)
+//      case "O" => player = Option(O)
+//      case _ => println("Valore non valido: digitare 'X' or 'O'")
+//  var currentPlayer: Option[Int] = None
+//  val randomAI = AI.randomAI(player.get.other)
+//  while currentPlayer.isEmpty do
+//    println("Vuoi essere il primo giocatore? (Y/N)")
+//    readLine() match
+//      case "Y" => currentPlayer = Option(0)
+//      case "N" => currentPlayer = Option(1)
+//      case _ => println("Valore non valido: digitare 'Y' or 'N'")
+//  val cols = (0 to bound).toList
+//  while !someoneIsWinning(gameVSAI.last) &&  gameVSAI.last.size < (bound + 1) * (bound + 1) do {
+//    val currentDisks: Int = gameVSAI.last.size
+//      println("Current Board:")
+//      printBoards(Seq(gameVSAI.last))
+//      println("")
+//      currentPlayer.get % 2 match {
+//        case 0 =>
+//          var validMoveMade = false
+//          while !validMoveMade do
+//            println("Seleziona colonna:")
+//            val selectedCol = readLine().toIntOption
+//            selectedCol match {
+//              case Some(col) if col >= 0 && col <= bound =>
+//                val nextBoard = placeDisk(gameVSAI.last, player.get, col)
+//                if gameVSAI.last != nextBoard then
+//                  gameVSAI = gameVSAI :+ nextBoard
+//                  validMoveMade = true
+//                else
+//                  println("Selezione non valida")
+//              case _ => println(s"Input non valido. Digitare un numero tra 0 e $bound")
+//            }
+//        case 1 =>
+//          gameVSAI = randomAI.placeNextDisk(gameVSAI)
+//      }
+//    currentPlayer = Option((currentPlayer.get + 1) % 2)
+//  }
+//  if gameVSAI.last.size == (bound + 1) * (bound + 1) then
+//    println("It-s a draw")
+//  else
+//    val winner = if ((currentPlayer.get + 1) % 2) == 0 then player.get else player.get.other
+//    println(s"$winner is the winner")
+//  println("Final Board:")
+//  printBoards(Seq(gameVSAI.last))
