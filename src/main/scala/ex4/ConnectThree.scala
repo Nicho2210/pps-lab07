@@ -133,41 +133,34 @@ object ConnectThree extends App:
         val availableCol: Seq[Int] = (0 to bound).filter(x => firstAvailableRow(currentBoard, x).isDefined)
         if availableCol.nonEmpty then {
           val opponent = player.other
-          val possibleMoves: Map[Int, (Board, Int, Boolean)] = {for
+          val evaluatedMoves: Map[Int, (Board, Int, Boolean)] = {for
             x <- availableCol
             yield {
-              val board = placeDisk(currentBoard, player, x)
-              val streak = getMaxStreak(boardToMap(board), player)
-              val opponentCouldWin: Boolean = placeAnyDisk(board, opponent).exists(b => getMaxStreak(boardToMap(b), opponent) >= streakToWin)
-              x -> (board, streak, opponentCouldWin)
+              val boardAfterMyMove = placeDisk(currentBoard, player, x)
+              val myStreak = getMaxStreak(boardToMap(boardAfterMyMove), player)
+              val opponentWinAfterMyMove: Boolean = placeAnyDisk(boardAfterMyMove, opponent).exists(b => getMaxStreak(boardToMap(b), opponent) >= streakToWin)
+              x -> (boardAfterMyMove, myStreak, opponentWinAfterMyMove)
             }}.toMap
-          val winningCol: Option[Int] = possibleMoves.filter((k, v) => v._2 >= streakToWin).keys.headOption
+          val winningCol: Option[Int] = evaluatedMoves.filter((k, v) => v._2 >= streakToWin).keys.headOption
           if winningCol.isDefined then {
             val chosenX = winningCol.get
             val newBoard = placeDisk(currentBoard, player, chosenX)
             game :+ newBoard
-          } else {
-            val opponentMoves: Map[Int, Int] = {for
-              x <- availableCol
-            yield x -> getMaxStreak(boardToMap(placeDisk(currentBoard, opponent, x)), opponent)
-            }.toMap
-            val blockOpponent: Option[Int] = opponentMoves.filter((k, v) => v >= streakToWin).keys.headOption
-            if blockOpponent.isDefined then {
-              val chosenX = blockOpponent.get
-              val newBoard = placeDisk(currentBoard, player, chosenX)
-              game :+ newBoard
-            } else {
-              val chosenX: Int = possibleMoves.toSeq.sortWith {
-                case ((_, (_, s1, bool1)), (_, (_, s2, bool2))) =>
-                  if !bool1 && bool2 then true
-                  else if bool1 && !bool2 then false
-                  else s1 > s2
-              }.map((k, _) => k).head
-              val newBoard = placeDisk(currentBoard, player, chosenX)
-              game :+ newBoard
+          }
+          else {
+            val sortedMoves: Seq[(Int, (Board, Int, Boolean))] = evaluatedMoves.toSeq.sortWith {
+              case ((_, (_, s1, bool1)), (_, (_, s2, bool2))) =>
+                if !bool1 && bool2 then true
+                else if bool1 && !bool2 then false
+                else s1 > s2
+            }
+            val bestMove: (Boolean, Int) = sortedMoves.map((k, v) => (v._3, v._2)).head
+            val topMoves: Seq[Int] = sortedMoves.filter((_, v) => (v._3, v._2) == bestMove).map((k, _) => k)
+            val chosenX: Int = topMoves(Random.nextInt(topMoves.size))
+            val newBoard = placeDisk(currentBoard, player, chosenX)
+            game :+ newBoard
             }
           }
-        }
         else {
           game
         }
