@@ -247,7 +247,7 @@ object ConnectThree extends App:
 //        case 1 =>
 //          gameVSAI = randomAI.placeNextDisk(gameVSAI)
 //      }
-//    currentPlayer = Option((currentPlayer.get + 1) % 2)
+//    currentPlayer = Option((currentPlayer.get +  1) % 2)
 //  }
 //  if gameVSAI.last.size == (bound + 1) * (bound + 1) then
 //    println("It-s a draw")
